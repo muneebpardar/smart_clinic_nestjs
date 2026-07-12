@@ -3,21 +3,25 @@ import { io } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import { ShellLayout } from './ShellLayout';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
-import { AiIntakeForm } from './AiIntakeForm';
+import { ReceptionistBoard } from './ReceptionistBoard';
+import { MedicalRecordsManager } from './MedicalRecordsManager';
+import { InsuranceDashboard } from './InsuranceDashboard';
 
 export const DashboardManager = () => {
   const { user } = useAuth();
-  const [syncStatus, setSyncStatus] = useState('Disconnected');
+  const [activeTab, setActiveTab] = useState('appointments');
 
   useEffect(() => {
-    // Connect to WebSocket gateway for real-time synchronization
-    const socket = io('http://localhost:3000');
-    socket.on('connect', () => setSyncStatus('Connected'));
-    socket.on('disconnect', () => setSyncStatus('Disconnected'));
+    // Setup WebSocket connection
+    const socket = io(import.meta.env.VITE_WS_URL || 'http://localhost:3000');
     
-    // Listen for events
+    socket.on('connect', () => {
+      console.log('Connected to real-time events');
+    });
+
     socket.on('appointmentUpdate', (data) => {
-      console.log('Real-time sync event received:', data);
+      console.log('Real-time update:', data);
+      // Trigger UI refresh logic here
     });
 
     return () => {
@@ -25,41 +29,99 @@ export const DashboardManager = () => {
     };
   }, []);
 
-  const renderPortal = () => {
-    switch (user?.role) {
-      case 'admin':
-        return <AnalyticsDashboard />;
-      case 'doctor':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-slate-800">Doctor Portal</h2>
-            <div className="p-6 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100">
-              <p className="text-slate-600">Upcoming Appointments Sync: {syncStatus}</p>
-              {/* Specialized Doctor Components */}
-            </div>
-            <AiIntakeForm />
-          </div>
-        );
-      case 'receptionist':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-slate-800">Reception Desk</h2>
-            <div className="p-6 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100">
-              <p className="text-slate-600">Live Status: {syncStatus}</p>
-            </div>
-            <AiIntakeForm />
-          </div>
-        );
-      case 'patient':
-      default:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-slate-800">Patient Portal</h2>
-            <AiIntakeForm />
-          </div>
-        );
-    }
-  };
+  if (!user) return null;
 
-  return <ShellLayout>{renderPortal()}</ShellLayout>;
+  // Render Admin Portal
+  if (user.role === 'admin') {
+    return (
+      <ShellLayout>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-slate-800">Admin Portal</h1>
+          </div>
+          <AnalyticsDashboard />
+        </div>
+      </ShellLayout>
+    );
+  }
+
+  // Render Doctor Portal
+  if (user.role === 'doctor') {
+    return (
+      <ShellLayout>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setActiveTab('appointments')}
+                className={`font-semibold pb-4 -mb-[17px] border-b-2 transition-colors ${activeTab === 'appointments' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              >
+                Appointments
+              </button>
+              <button 
+                onClick={() => setActiveTab('records')}
+                className={`font-semibold pb-4 -mb-[17px] border-b-2 transition-colors ${activeTab === 'records' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              >
+                Medical Records
+              </button>
+            </div>
+          </div>
+          
+          {activeTab === 'appointments' ? (
+            <div className="bg-white/80 p-8 rounded-2xl border border-slate-100 shadow-sm text-center">
+              <h2 className="text-xl font-semibold text-slate-700">Today's Appointments</h2>
+              <p className="text-slate-500">Doctor's daily schedule will appear here.</p>
+            </div>
+          ) : (
+            <MedicalRecordsManager />
+          )}
+        </div>
+      </ShellLayout>
+    );
+  }
+
+  // Render Receptionist Portal
+  if (user.role === 'receptionist') {
+    return (
+      <ShellLayout>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setActiveTab('appointments')}
+                className={`font-semibold pb-4 -mb-[17px] border-b-2 transition-colors ${activeTab === 'appointments' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              >
+                Booking Board
+              </button>
+              <button 
+                onClick={() => setActiveTab('insurance')}
+                className={`font-semibold pb-4 -mb-[17px] border-b-2 transition-colors ${activeTab === 'insurance' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              >
+                Insurance Pre-Auth
+              </button>
+            </div>
+          </div>
+
+          {activeTab === 'appointments' ? (
+            <ReceptionistBoard />
+          ) : (
+            <InsuranceDashboard />
+          )}
+        </div>
+      </ShellLayout>
+    );
+  }
+
+  // Render Patient Portal
+  return (
+    <ShellLayout>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-slate-800">Patient Portal</h1>
+        <div className="bg-white/80 p-8 rounded-2xl border border-slate-100 shadow-sm">
+          <h2 className="text-xl font-semibold text-slate-700">My Appointments</h2>
+          <p className="text-slate-500">Book new appointments or view upcoming visits.</p>
+        </div>
+      </div>
+    </ShellLayout>
+  );
 };
