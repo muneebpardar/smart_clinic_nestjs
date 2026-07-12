@@ -13,6 +13,12 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 export class AppointmentsController {
   constructor(private appointmentsService: AppointmentsService) {}
 
+  @Roles(Role.RECEPTIONIST)
+  @Post('walk-in')
+  async handleWalkIn(@Body() body: { doctorId: string; patientId: string }) {
+    return this.appointmentsService.handleWalkIn(body.doctorId, body.patientId);
+  }
+
   @Roles(Role.PATIENT, Role.RECEPTIONIST)
   @Post('book')
   async book(@Body() body: { doctorId: string; patientId: string; startTime: string; endTime: string }) {

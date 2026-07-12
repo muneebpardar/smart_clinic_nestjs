@@ -14,6 +14,8 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { AiProxyModule } from './ai-proxy/ai-proxy.module';
 import { EventsModule } from './events/events.module';
+import { ProfilesModule } from './profiles/profiles.module';
+import { InsuranceModule } from './insurance/insurance.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { EventsModule } from './events/events.module';
     MedicalRecordsModule,
     AiProxyModule,
     EventsModule,
+    ProfilesModule,
+    InsuranceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

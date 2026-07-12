@@ -1,0 +1,21 @@
+﻿src/appointments/appointments.service.ts(45,31): error TS2339: Property 'doctorProfileRepository' does not exist on type 'AppointmentsService'.
+src/insurance/insurance.service.ts(14,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(entityLikeArray: DeepPartial<InsurancePreAuth>[]): InsurancePreAuth[]', gave the following error.
+    Object literal may only specify known properties, and 'appointment' does not exist in type 'DeepPartial<InsurancePreAuth>[]'.
+  Overload 2 of 3, '(entityLike: DeepPartial<InsurancePreAuth>): InsurancePreAuth', gave the following error.
+    Object literal may only specify known properties, and 'providerName' does not exist in type 'DeepPartial<InsurancePreAuth>'.
+src/insurance/insurance.service.ts(28,24): error TS2339: Property 'notes' does not exist on type 'InsurancePreAuth'.
+src/insurance/insurance.service.ts(34,44): error TS2559: Type 'string[]' has no properties in common with type 'FindOptionsRelations<InsurancePreAuth>'.
+src/profiles/profiles.service.ts(39,34): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(entityLikeArray: DeepPartial<PatientProfile>[]): PatientProfile[]', gave the following error.
+    Argument of type '{ id?: string | undefined; firstName?: string | undefined; lastName?: string | undefined; dateOfBirth?: Date | undefined; insuranceId?: string | undefined; user: User | null; ... 4 more ...; updatedAt?: Date | undefined; }' is not assignable to parameter of type 'DeepPartial<PatientProfile>[]'.
+      Type '{ id?: string | undefined; firstName?: string | undefined; lastName?: string | undefined; dateOfBirth?: Date | undefined; insuranceId?: string | undefined; user: User | null; ... 4 more ...; updatedAt?: Date | undefined; }' is missing the following properties from type 'DeepPartial<PatientProfile>[]': length, pop, push, concat, and 35 more.
+  Overload 2 of 3, '(entityLike: DeepPartial<PatientProfile>): PatientProfile', gave the following error.
+    Type 'User | null' is not assignable to type 'DeepPartial<User> | undefined'.
+      Type 'null' is not assignable to type 'DeepPartial<User> | undefined'.
+test/app.e2e-spec.ts(65,12): error TS2349: This expression is not callable.
+  Type '{ default: SuperTestStatic; Test: typeof Test; agent: typeof TestAgent & ((app?: App | undefined, options?: AgentOptions | undefined) => TestAgent<...>); cookies: ExpectCookiesStatic; }' has no call signatures.
+test/app.e2e-spec.ts(72,12): error TS2349: This expression is not callable.
+  Type '{ default: SuperTestStatic; Test: typeof Test; agent: typeof TestAgent & ((app?: App | undefined, options?: AgentOptions | undefined) => TestAgent<...>); cookies: ExpectCookiesStatic; }' has no call signatures.
+test/app.e2e-spec.ts(79,12): error TS2349: This expression is not callable.
+  Type '{ default: SuperTestStatic; Test: typeof Test; agent: typeof TestAgent & ((app?: App | undefined, options?: AgentOptions | undefined) => TestAgent<...>); cookies: ExpectCookiesStatic; }' has no call signatures.

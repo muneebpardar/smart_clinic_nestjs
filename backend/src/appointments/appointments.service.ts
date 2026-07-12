@@ -2,13 +2,16 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Appointment, AppointmentStatus } from '../entities/appointment.entity';
+import { DoctorProfile } from '../entities/doctor-profile.entity';
 
 @Injectable()
 export class AppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentsRepository: Repository<Appointment>,
-    private dataSource: DataSource
+    private dataSource: DataSource,
+    @InjectRepository(DoctorProfile)
+    private doctorProfileRepository: Repository<DoctorProfile>,
   ) {}
 
   async bookAppointment(doctorId: string, patientId: string, startTime: Date, endTime: Date) {
@@ -39,6 +42,21 @@ export class AppointmentsService {
 
       return await manager.save(appointment);
     });
+  }
+
+  async handleWalkIn(doctorId: string, patientId: string) {
+    const doctor = await this.doctorProfileRepository.findOne({ where: { user: { id: doctorId } } });
+    if (!doctor) throw new BadRequestException('Doctor not found');
+
+    const appointment = this.appointmentsRepository.create({
+      doctor: { id: doctor.id } as any,
+      patient: { id: patientId } as any,
+      startTime: new Date(),
+      endTime: new Date(new Date().getTime() + 30 * 60000), // 30 min from now
+      status: AppointmentStatus.SCHEDULED,
+    });
+
+    return await this.appointmentsRepository.save(appointment);
   }
 
   async cancelAppointment(appointmentId: string) {

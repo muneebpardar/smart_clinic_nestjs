@@ -1,10 +1,11 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { MedicalRecordsService } from './medical-records.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '../entities/user.entity';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiConsumes } from '@nestjs/swagger';
 
 @ApiTags('MedicalRecords')
 @ApiBearerAuth()
@@ -27,5 +28,27 @@ export class MedicalRecordsController {
       },
       body.finalize
     );
+  }
+
+  @Roles(Role.DOCTOR)
+  @Post('upload-lab-result')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  async uploadLabResult(
+    @Request() req: any,
+    @Body('appointmentId') appointmentId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 })], // 5 MB limit
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return { 
+      message: 'File uploaded successfully', 
+      filename: file.originalname,
+      size: file.size,
+      appointmentId 
+    };
   }
 }
