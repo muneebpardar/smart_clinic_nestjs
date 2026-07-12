@@ -12,6 +12,7 @@ import { InsurancePreAuth } from './entities/insurance-pre-auth.entity';
 import { AuthModule } from './auth/auth.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { MedicalRecordsModule } from './medical-records/medical-records.module';
+import { AiProxyModule } from './ai-proxy/ai-proxy.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { MedicalRecordsModule } from './medical-records/medical-records.module';
     AuthModule,
     AppointmentsModule,
     MedicalRecordsModule,
+    AiProxyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

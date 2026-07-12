@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { AiIntakeForm } from './components/AiIntakeForm';
 
 const Home = () => {
   return (
@@ -39,7 +40,7 @@ const Dashboard = () => {
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="p-6 rounded-xl border border-slate-100 bg-white hover:shadow-md transition-shadow">
             <h3 className="text-lg text-emerald-600 font-medium mb-2">Appointments</h3>
             <p className="text-slate-500 text-sm">Manage your upcoming schedules.</p>
@@ -49,6 +50,9 @@ const Dashboard = () => {
             <p className="text-slate-500 text-sm">View your clinical history safely.</p>
           </div>
         </div>
+        
+        {/* Render AI Intake Form */}
+        <AiIntakeForm />
       </div>
     </div>
   );
