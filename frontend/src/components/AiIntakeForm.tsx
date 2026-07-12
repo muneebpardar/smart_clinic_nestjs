@@ -1,141 +1,128 @@
-import React, { useState } from 'react';
-import { api } from '../api/axios';
-import { Bot, AlertCircle } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
+import { MessageSquare, X, Send, Bot } from 'lucide-react';
+
+interface Message {
+  id: string;
+  text: string;
+  sender: 'bot' | 'user';
+}
 
 export const AiIntakeForm = () => {
-  const [chatInput, setChatInput] = useState('');
-  const [chatHistory, setChatHistory] = useState<string[]>([]);
-  const [isAiFailed, setIsAiFailed] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    { id: '1', text: "Hi! I'm your AI Intake Assistant. Can you briefly describe the main reason for your visit?", sender: 'bot' }
+  ]);
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [parsedData, setParsedData] = useState<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fallback static form state
-  const [staticForm, setStaticForm] = useState({ symptoms: '', duration: '', concerns: '' });
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-  const handleAiSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-    const newHistory = [...chatHistory, `Patient: ${chatInput}`];
-    setChatHistory(newHistory);
-    setChatInput('');
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const userMsg = input.trim();
+    setMessages(prev => [...prev, { id: Date.now().toString(), text: userMsg, sender: 'user' }]);
+    setInput('');
     setIsLoading(true);
 
     try {
-      const response = await api.post('/ai-proxy/intake', { chatHistory: newHistory });
-      setParsedData(response.data);
-      setIsAiFailed(false);
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/ai/intake`, {
+        chatHistory: messages.map(m => m.text).concat(userMsg)
+      });
+      
+      setMessages(prev => [
+        ...prev, 
+        { id: Date.now().toString(), text: `Got it. I've noted: ${data.symptoms?.join(', ')}. Anything else?`, sender: 'bot' }
+      ]);
     } catch (error) {
-      console.error('AI Processing Failed', error);
-      setIsAiFailed(true);
+      console.error('Intake failed', error);
+      setMessages(prev => [
+        ...prev, 
+        { id: Date.now().toString(), text: "I'm having trouble connecting. We've recorded your previous answer.", sender: 'bot' }
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleStaticSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setParsedData({
-      symptoms: staticForm.symptoms.split(','),
-      duration: staticForm.duration,
-      concerns: staticForm.concerns,
-    });
-  };
-
-  if (parsedData) {
-    return (
-      <div className="p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-emerald-100/50 shadow-sm">
-        <h3 className="text-xl font-semibold text-emerald-600 mb-4 flex items-center gap-2">
-          <Bot className="w-5 h-5" /> Intake Summary Processed
-        </h3>
-        <pre className="p-4 bg-slate-50 text-slate-700 rounded-xl text-sm overflow-x-auto">
-          {JSON.stringify(parsedData, null, 2)}
-        </pre>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100/50">
-      <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-slate-800">Patient Intake</h2>
-        {isAiFailed && (
-          <span className="flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
-            <AlertCircle className="w-3 h-3" /> AI Unavailable (Fallback Mode)
-          </span>
-        )}
-      </div>
+    <>
+      {/* Floating Button */}
+      <button 
+        onClick={() => setIsOpen(true)}
+        className={`fixed bottom-6 right-6 w-14 h-14 bg-teal-500 hover:bg-teal-600 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 z-50 ${isOpen ? 'scale-0' : 'scale-100'}`}
+      >
+        <MessageSquare className="w-6 h-6" />
+      </button>
 
-      {!isAiFailed ? (
-        <form onSubmit={handleAiSubmit} className="space-y-4">
-          <div className="h-48 overflow-y-auto bg-slate-50 p-4 rounded-xl border border-slate-100 mb-4 flex flex-col gap-2">
-            {chatHistory.length === 0 ? (
-              <p className="text-slate-400 text-sm text-center my-auto">Describe your symptoms naturally (e.g., "I've had a headache for 3 days...")</p>
-            ) : (
-              chatHistory.map((msg, i) => (
-                <div key={i} className="text-sm p-2 bg-emerald-50 text-emerald-900 rounded-lg max-w-[80%] self-end">
-                  {msg.replace('Patient: ', '')}
-                </div>
-              ))
-            )}
-            {isLoading && <div className="text-xs text-slate-400 animate-pulse">AI is processing...</div>}
+      {/* Chat Window */}
+      <div className={`fixed bottom-6 right-6 w-80 sm:w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden transition-all duration-300 transform origin-bottom-right z-50 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
+        {/* Header */}
+        <div className="bg-slate-800 p-4 text-white flex justify-between items-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-teal-500/10 blur-xl" />
+          <div className="flex items-center gap-2 relative z-10">
+            <Bot className="w-5 h-5 text-teal-400" />
+            <span className="font-semibold text-sm">Pre-Consultation Intake</span>
           </div>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              placeholder="Type your symptoms..."
-              className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+          <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors relative z-10">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${
+                msg.sender === 'user' 
+                  ? 'bg-teal-500 text-white rounded-tr-sm' 
+                  : 'bg-white border border-slate-100 shadow-sm text-slate-700 rounded-tl-sm'
+              }`}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-white border border-slate-100 shadow-sm p-3 rounded-2xl rounded-tl-sm text-slate-400 flex gap-1">
+                <span className="animate-bounce">●</span>
+                <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>●</span>
+                <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>●</span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input area */}
+        <div className="p-3 border-t border-slate-100 bg-white">
+          <div className="flex items-center gap-2">
+            <input 
+              type="text" 
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              placeholder="Type your answer..."
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
             />
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all"
+            <button 
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading}
+              className="w-10 h-10 bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 text-white rounded-full flex items-center justify-center transition-colors flex-shrink-0"
             >
-              Send
+              <Send className="w-4 h-4 ml-0.5" />
             </button>
           </div>
-        </form>
-      ) : (
-        <form onSubmit={handleStaticSubmit} className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">Symptoms (comma separated)</label>
-            <input
-              type="text"
-              value={staticForm.symptoms}
-              onChange={(e) => setStaticForm({ ...staticForm, symptoms: e.target.value })}
-              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition-all"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">Duration</label>
-            <input
-              type="text"
-              value={staticForm.duration}
-              onChange={(e) => setStaticForm({ ...staticForm, duration: e.target.value })}
-              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition-all"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">Primary Concerns</label>
-            <textarea
-              value={staticForm.concerns}
-              onChange={(e) => setStaticForm({ ...staticForm, concerns: e.target.value })}
-              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition-all min-h-[100px]"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full py-3 bg-slate-800 text-white rounded-xl font-medium hover:bg-slate-700 transition-colors shadow-sm"
-          >
-            Submit Standard Form
-          </button>
-        </form>
-      )}
-    </div>
+        </div>
+      </div>
+    </>
   );
 };

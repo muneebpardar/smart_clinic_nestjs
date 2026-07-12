@@ -4,6 +4,8 @@ import { Repository, DataSource } from 'typeorm';
 import { Appointment, AppointmentStatus } from '../entities/appointment.entity';
 import { DoctorProfile } from '../entities/doctor-profile.entity';
 
+import { EventsGateway } from '../events/events.gateway';
+
 @Injectable()
 export class AppointmentsService {
   constructor(
@@ -12,6 +14,7 @@ export class AppointmentsService {
     private dataSource: DataSource,
     @InjectRepository(DoctorProfile)
     private doctorProfileRepository: Repository<DoctorProfile>,
+    private eventsGateway: EventsGateway,
   ) {}
 
   async bookAppointment(doctorId: string, patientId: string, startTime: Date, endTime: Date) {
@@ -40,7 +43,14 @@ export class AppointmentsService {
         status: AppointmentStatus.SCHEDULED,
       });
 
-      return await manager.save(appointment);
+      const savedAppointment = await manager.save(appointment);
+      
+      this.eventsGateway.broadcastSyncEvent('appointmentUpdate', {
+        type: 'NEW_BOOKING',
+        appointmentId: savedAppointment.id,
+      });
+
+      return savedAppointment;
     });
   }
 
@@ -69,6 +79,11 @@ export class AppointmentsService {
 
     appointment.status = AppointmentStatus.CANCELLED;
     await this.appointmentsRepository.save(appointment);
+
+    this.eventsGateway.broadcastSyncEvent('appointmentUpdate', {
+      type: 'CANCELLED',
+      appointmentId: appointment.id,
+    });
 
     // Waitlist Alert System
     const timeDifference = appointment.startTime.getTime() - new Date().getTime();
