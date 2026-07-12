@@ -9,6 +9,11 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.2",
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
     "typescript": "~6.0.2",
     "vite": "^8.1.1"
   },
@@ -18,6 +23,8 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.24.0",
     "postcss": "^8.5.17",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1",
     "recharts": "^3.9.2",
     "socket.io-client": "^4.8.3",

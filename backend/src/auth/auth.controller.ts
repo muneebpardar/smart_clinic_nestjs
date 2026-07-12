@@ -29,7 +29,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get('admin-only')
-  getAdminData(@Request() req) {
+  getAdminData(@Request() req: any) {
     return { message: 'Hello Admin', user: req.user };
   }
 }

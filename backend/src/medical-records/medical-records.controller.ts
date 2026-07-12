@@ -15,7 +15,7 @@ export class MedicalRecordsController {
 
   @Roles(Role.DOCTOR)
   @Post('save')
-  async saveRecord(@Request() req, @Body() body: any) {
+  async saveRecord(@Request() req: any, @Body() body: any) {
     return this.medicalRecordsService.saveRecord(
       req.user.userId, // JWT sub
       body.appointmentId,

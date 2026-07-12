@@ -44,7 +44,7 @@ export class AppointmentsService {
   async cancelAppointment(appointmentId: string) {
     const appointment = await this.appointmentsRepository.findOne({
       where: { id: appointmentId },
-      relations: ['doctor', 'patient'],
+      relations: { doctor: true, patient: true },
     });
 
     if (!appointment) throw new BadRequestException('Appointment not found');

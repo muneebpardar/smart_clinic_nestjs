@@ -1,4 +1,3 @@
-import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 const noShowData = [
@@ -74,7 +73,7 @@ export const AnalyticsDashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={insuranceData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                  {insuranceData.map((entry, index) => (
+                  {insuranceData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
