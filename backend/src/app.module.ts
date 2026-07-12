@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { AiProxyModule } from './ai-proxy/ai-proxy.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AiProxyModule } from './ai-proxy/ai-proxy.module';
     AppointmentsModule,
     MedicalRecordsModule,
     AiProxyModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
