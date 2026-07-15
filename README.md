@@ -1,124 +1,147 @@
-# SmartClinic Monorepo
+# SmartClinic Healthcare Platform (Monorepo)
 
-SmartClinic is a comprehensive healthcare platform featuring advanced AI-driven tools, real-time synchronization, a Smart Booking Wizard, a SOAP Note Editor for clinical documentation, and a floating AI Intake Chatbot. This project uses a modern tech stack with a React/Vite frontend and a NestJS/TypeORM backend with PostgreSQL.
-
-## 🚀 Getting Started on a New Device
-
-Follow these instructions to get the project up and running after cloning it onto a new device.
-
-### Prerequisites
-
-Ensure you have the following installed on your machine:
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [Docker](https://www.docker.com/) & Docker Compose (for the local PostgreSQL database)
-- [Git](https://git-scm.com/)
+SmartClinic is an enterprise-grade, real-time clinical management and patient intake platform. It features AI-driven pre-consultation triaging, clinical SOAP dictation notes, dynamic booking recommendations, and receptionist calendars built on a unified monorepo architecture.
 
 ---
 
-### 1. Database Setup (Docker)
+## 🚀 Key Features
 
-This project uses PostgreSQL. A `docker-compose.yml` file is provided at the root for easy local database setup.
+* **AI Pre-Consultation Intake Chatbot**: Conducts interactive patient chats to compile Chief Complaint, Duration, Severity, and Medical History directly into database triage cards.
+* **Clinical dictation SOAP Note Formatter**: Formats unstructured dictations into structured Subjective, Objective, Assessment, and Plan notes, while recommending ICD-10 medical diagnostic codes.
+* **Smart Booking Recommender**: Recommends medical specialties and doctors based on patient-described symptoms.
+* **AI No-Show Risk Predictor**: Calculates missed-appointment risk scores for scheduled bookings to highlight high-risk cases for receptionists.
+* **Real-time WebSockets Sync**: Synchronizes bookings, checks-ins, and completed intake charts across dashboards in real-time.
+* **Role-Based Access Control (RBAC)**: Enforces access constraints for **Patients**, **Doctors**, **Receptionists**, and **Admins**.
 
-1. Open a terminal at the root of the project.
-2. Start the database by running:
+---
+
+## 🏗️ Architectural Layout
+
+The codebase is organized as a clean-architecture monorepo separating client dashboards and server instances:
+
+```
+smartclinic-monorepo/
+├── backend/                  # NestJS TypeScript Backend Application
+│   ├── src/
+│   │   ├── auth/            # JWT authentication & custom RBAC guards
+│   │   ├── entities/        # TypeORM database schemas & relations
+│   │   ├── appointments/    # Booking workflows & WebSockets gateway
+│   │   ├── ai-proxy/        # Secured Groq & Gemini LLM completion controllers
+│   │   └── migrations/      # TypeORM database migration scripts
+│   └── test/                # E2E integration test suites (Supertest)
+├── frontend/                 # React 18 TypeScript Frontend (Vite)
+│   ├── src/
+│   │   ├── components/      # Responsive React views (SOAP, Booking, Chat)
+│   │   └── context/         # Auth contexts & Axios API layer
+└── docker-compose.yml        # PostgreSQL container orchestrator
+```
+
+---
+
+## 🛠️ Getting Started
+
+### Prerequisites
+* **Node.js**: v18.0.0 or later
+* **npm**: v9.0.0 or later
+* **Database**: Running PostgreSQL instance (e.g., Neon.tech serverless DB or local PostgreSQL)
+
+---
+
+### Step 1: Database Infrastructure Setup
+
+If running a local PostgreSQL instance, a Docker Compose file is provided:
+1. Start the PostgreSQL instance:
    ```bash
    docker-compose up -d
    ```
-   *(This will start a PostgreSQL container named `smartclinic_postgres` on port `5432` with the database `smartclinic_dev`, user `clinic_admin`, and password `StrongSecurePassword2026!`)*
+   *This launches a PostgreSQL container bound to port `5432`.*
 
 ---
 
-### 2. Backend Setup (NestJS)
+### Step 2: Backend Setup (NestJS)
 
-1. Open a new terminal and navigate to the backend directory:
+1. Navigate to the backend directory:
    ```bash
    cd backend
    ```
-2. Install the dependencies:
+2. Install dependencies:
    ```bash
    npm install
    ```
-3. Set up environment variables:
-   Create a `.env` file in the `backend` directory (if it doesn't exist) and ensure it has the necessary environment configurations:
-   ```env
-   # Database connection (matching docker-compose)
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_USER=clinic_admin
-   DB_PASSWORD=StrongSecurePassword2026!
-   DB_NAME=smartclinic_dev
-   
-   # JWT & Authentication
-   JWT_SECRET=your_jwt_secret_here
-
-   # Gemini API Key (for AI Modules)
-   GEMINI_API_KEY=your_gemini_api_key_here
+3. Setup environmental variables:
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
    ```
-4. Run migrations/seed the database (if applicable in your workflow).
-5. Start the backend development server:
+4. Configure `.env` variables:
+   ```env
+   # Database connection (TypeORM)
+   DATABASE_URL=postgresql://clinic_admin:StrongSecurePassword2026!@localhost:5432/smartclinic_dev
+   
+   # JWT Configuration
+   JWT_SECRET=your-secure-jwt-passphrase-here
+
+   # Primary AI Engine (Groq Llama 3.3)
+   GROQ_API_KEY=gsk_PsfyKY0l3zdIGQiNiCJsWGdy...
+
+   # Fallback AI Engine (Gemini SDK - supports legacy 'AIza' and unified 'AQ.' keys)
+   GEMINI_API_KEY=AQ.Ab8RN6K76bCMEQ1mUJKygh...
+   ```
+5. Apply database migrations & seed schemas:
+   ```bash
+   npm run migration:run
+   ```
+6. Start the server in watch mode:
    ```bash
    npm run start:dev
    ```
-   *The backend should now be running on its configured port (typically `http://localhost:3000`).*
+   *The backend server will run on `http://localhost:3000`.*
 
 ---
 
-### 3. Frontend Setup (React + Vite)
+### Step 3: Frontend Setup (React)
 
-1. Open a new terminal and navigate to the frontend directory:
+1. Navigate to the frontend directory:
    ```bash
    cd frontend
    ```
-2. Install the dependencies:
+2. Install dependencies:
    ```bash
    npm install
    ```
-3. Set up environment variables:
-   Create a `.env` file in the `frontend` directory with your necessary client-side variables (for example):
+3. Configure `.env` variables:
+   Create a `.env` file containing:
    ```env
    VITE_API_BASE_URL=http://localhost:3000
+   VITE_WS_URL=http://localhost:3000
    ```
-4. Start the frontend development server:
+4. Start the frontend developer client:
    ```bash
    npm run dev
    ```
-   *The frontend should now be accessible in your browser (typically `http://localhost:5173`).*
+   *The client interface will run on `http://localhost:5173`.*
 
 ---
 
-## 🔗 Connecting to a GitHub Repository
+## 🧪 Testing Guide
 
-If you want to push this project to a new GitHub repository, follow these steps:
+We write integration and controller tests using **Jest** and **Supertest** to validate endpoints, authentication, and database actions.
 
-1. **Create a new repository on GitHub** (do NOT initialize it with a README, .gitignore, or license, as you already have those locally).
-2. **Open a terminal in the root** of this project (`smartclinic-monorepo`).
-3. **Initialize Git (if not already done)**:
+To run the backend E2E integration tests:
+1. Navigate to the `backend/` directory:
    ```bash
-   git init
+   cd backend
    ```
-4. **Stage all files**:
+2. Run the test suite:
    ```bash
-   git add .
+   npm run test:e2e
    ```
-5. **Commit the files**:
-   ```bash
-   git commit -m "Initial commit: SmartClinic monorepo setup"
-   ```
-6. **Link your local repository to GitHub** (replace `YOUR_USERNAME` and `YOUR_REPO_NAME` with your actual info):
-   ```bash
-   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-   ```
-7. **Rename the default branch to `main` (if necessary)**:
-   ```bash
-   git branch -M main
-   ```
-8. **Push the code to GitHub**:
-   ```bash
-   git push -u origin main
-   ```
+   *Note: E2E tests use provider overrides to mock the database repositories, ensuring your database remains clean and unpolluted during testing.*
 
-## 📂 Project Structure
+---
 
-- `/backend`: NestJS backend, TypeORM, PostgreSQL connection, WebSockets (Socket.io).
-- `/frontend`: React frontend built with Vite, TailwindCSS, Zustand for state management.
-- `docker-compose.yml`: Database configuration.
+## 🔒 Security Implementations
+
+* **Environment Separation**: Sensitive credentials (such as API keys and connection URLs) are stored in server `.env` files and never exposed to the client.
+* **Role-Based Guards**: NestJS route endpoints are guarded using `JwtAuthGuard` and a custom metadata-driven `RolesGuard` checking roles against JSON Web Tokens.
+* **SSL Transit Encryption**: Connections to serverless cloud databases (e.g. Neon) are configured with SSL options (`rejectUnauthorized: false`) for secure data transit.
