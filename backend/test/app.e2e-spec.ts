@@ -61,10 +61,10 @@ describe('AppController (e2e)', () => {
   let tempUser: any = null;
   const mockUsersRepository = {
     findOne: jest.fn().mockImplementation(async (options) => {
-      if (tempUser && (!options?.where?.email || options.where.email === tempUser.email)) {
+      if (tempUser && options?.where?.email === tempUser.email) {
         return tempUser;
       }
-      return { id: '1', email: 'test@test.com', passwordHash: bcrypt.hashSync('password', 10), role: Role.PATIENT };
+      return null;
     }),
     create: jest.fn().mockImplementation((data) => {
       tempUser = { id: '1', ...data };
