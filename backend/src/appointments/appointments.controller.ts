@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -34,5 +34,35 @@ export class AppointmentsController {
   @Post(':id/cancel')
   async cancel(@Param('id') id: string) {
     return this.appointmentsService.cancelAppointment(id);
+  }
+
+  @Roles(Role.PATIENT)
+  @Get('patient/me')
+  async getMyPatientAppointments(@Request() req: any) {
+    return this.appointmentsService.getPatientAppointments(req.user.userId);
+  }
+
+  @Roles(Role.DOCTOR)
+  @Get('doctor/me')
+  async getMyDoctorAppointments(@Request() req: any) {
+    return this.appointmentsService.getDoctorAppointments(req.user.userId);
+  }
+
+  @Roles(Role.RECEPTIONIST, Role.ADMIN)
+  @Get('analytics')
+  async getAnalytics() {
+    return this.appointmentsService.getAnalytics();
+  }
+
+  @Roles(Role.RECEPTIONIST, Role.ADMIN)
+  @Get()
+  async getAllAppointments() {
+    return this.appointmentsService.getAllAppointments();
+  }
+
+  @Roles(Role.PATIENT)
+  @Post(':id/intake-summary')
+  async saveIntakeSummary(@Param('id') id: string, @Body() body: { triageSummary: any }) {
+    return this.appointmentsService.saveIntakeSummary(id, body.triageSummary);
   }
 }

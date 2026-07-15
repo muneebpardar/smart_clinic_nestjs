@@ -19,9 +19,10 @@ export class AiProxyController {
     return this.aiProxyService.processPatientIntake(chatHistory);
   }
 
-  @Roles(Role.DOCTOR, Role.RECEPTIONIST)
+  @Roles(Role.DOCTOR, Role.RECEPTIONIST, Role.PATIENT)
   @Post('recommendation')
-  async recommend(@Body('intakeData') intakeData: any) {
+  async recommend(@Body() body: any) {
+    const intakeData = body.intakeData || body;
     return this.aiProxyService.recommendNextSteps(intakeData);
   }
 

@@ -33,6 +33,9 @@ export class Appointment {
   @Column({ nullable: true })
   cancellationWaitlistAlertTime: Date;
 
+  @Column({ type: 'jsonb', nullable: true })
+  triageSummary: any;
+
   @CreateDateColumn()
   createdAt: Date;
 

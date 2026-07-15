@@ -10,6 +10,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+console.log('Using database URL:', process.env.DATABASE_URL);
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
@@ -25,4 +27,5 @@ export const AppDataSource = new DataSource({
   ],
   migrations: ['./src/migrations/*.ts'],
   subscribers: [],
+  ssl: process.env.DATABASE_URL?.includes('neon.tech') ? { rejectUnauthorized: false } : false,
 });

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { api } from '../api/axios';
 import { Bot, FileText, CheckCircle, List, Save, Zap } from 'lucide-react';
 
 export const SOAPEditor = () => {
@@ -18,7 +18,7 @@ export const SOAPEditor = () => {
     if (!rawNotes.trim()) return;
     setIsFormatting(true);
     try {
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/ai/format-soap`, {
+      const { data } = await api.post('/ai-proxy/format-soap', {
         rawNotes
       });
       setSoapData({

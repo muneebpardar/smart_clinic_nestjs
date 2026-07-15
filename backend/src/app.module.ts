@@ -19,7 +19,16 @@ import { InsuranceModule } from './insurance/insurance.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ 
+      isGlobal: true,
+      validate: (config: Record<string, any>) => {
+        const apiKey = config.GEMINI_API_KEY;
+        if (apiKey && !/^(AIza|AQ\.).+/.test(apiKey)) {
+          throw new Error('Config validation error: GEMINI_API_KEY must start with "AIza" or "AQ."');
+        }
+        return config;
+      }
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
@@ -32,6 +41,7 @@ import { InsuranceModule } from './insurance/insurance.module';
         InsurancePreAuth,
       ],
       synchronize: false, // We use migrations
+      ssl: process.env.DATABASE_URL?.includes('neon.tech') ? { rejectUnauthorized: false } : false,
     }),
     AuthModule,
     AppointmentsModule,
